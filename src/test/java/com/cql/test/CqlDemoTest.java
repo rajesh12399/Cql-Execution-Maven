@@ -265,21 +265,4 @@ public class CqlDemoTest {
         System.out.println(String.format("Passed %s of %s tests.", passCounter, testCounter));
     }
 
-    private String getStringFromResourceStream(String resourceName) {
-        java.io.InputStream input = CqlDemoTest.class.getResourceAsStream(resourceName);
-        try (BufferedReader stringReader = new BufferedReader(new InputStreamReader(input))) {
-            String line = null;
-            StringBuilder source = new StringBuilder();
-            while ((line = stringReader.readLine()) != null) {
-                source.append(line);
-                source.append("\n");
-            }
-            return source.toString();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-    
 }
