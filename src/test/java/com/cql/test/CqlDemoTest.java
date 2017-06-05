@@ -1,17 +1,33 @@
 package com.cql.test;
 
-import ca.uhn.fhir.context.FhirContext;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBException;
+
 import org.cqframework.cql.cql2elm.CqlTranslator;
 import org.cqframework.cql.cql2elm.CqlTranslatorException;
 import org.cqframework.cql.cql2elm.LibraryManager;
 import org.cqframework.cql.cql2elm.ModelManager;
 import org.cqframework.cql.elm.execution.Library;
 import org.cqframework.cql.elm.tracking.TrackBack;
-import org.hl7.fhir.dstu3.model.*;
+import org.hl7.fhir.dstu3.model.BaseDateTimeType;
+import org.hl7.fhir.dstu3.model.BooleanType;
+import org.hl7.fhir.dstu3.model.Coding;
+import org.hl7.fhir.dstu3.model.DecimalType;
 import org.hl7.fhir.dstu3.model.Enumeration;
+import org.hl7.fhir.dstu3.model.IntegerType;
+import org.hl7.fhir.dstu3.model.Quantity;
+import org.hl7.fhir.dstu3.model.Resource;
+import org.hl7.fhir.dstu3.model.StringType;
 import org.junit.Test;
 import org.opencds.cqf.cql.data.fhir.FhirDataProvider;
-import org.opencds.cqf.cql.data.fhir.FhirDataProviderDstu2;
 import org.opencds.cqf.cql.elm.execution.EqualEvaluator;
 import org.opencds.cqf.cql.execution.Context;
 import org.opencds.cqf.cql.execution.CqlLibraryReader;
@@ -19,34 +35,28 @@ import org.opencds.cqf.cql.execution.LibraryLoader;
 import org.opencds.cqf.cql.runtime.Code;
 import org.opencds.cqf.cql.runtime.DateTime;
 
-import javax.xml.bind.JAXB;
-import javax.xml.bind.JAXBException;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.util.*;
+import com.cql.input.support.Tests;
 
-/**
- * Created by Bryn on 12/14/2016.
- */
-public class TestFhirPath {
+import ca.uhn.fhir.context.FhirContext;
+
+
+public class CqlDemoTest {
 
     private FhirContext fhirContext = FhirContext.forDstu3();
 
-   /* private Tests loadTests() {
-        return JAXB.unmarshal(TestFhirPath.class.getResourceAsStream("stu3/tests-fhir-r3.xml"), Tests.class);
-    }*/
+  private Tests loadTests() {
+        return JAXB.unmarshal(CqlDemoTest.class.getResourceAsStream("/supportdata/tests-fhir-r3.xml"), Tests.class);
+    }
 
     private Resource loadResource(String resourcePath) {
         return (Resource)fhirContext.newXmlParser().parseResource(
-                new InputStreamReader(TestFhirPath.class.getResourceAsStream("stu3/input/" + resourcePath)));
+                new InputStreamReader(CqlDemoTest.class.getResourceAsStream("/input/" + resourcePath)));
     }
 
-   /* private Iterable<Object> loadExpectedResults(org.hl7.fhirpath.tests.Test test) {
+   private Iterable<Object> loadExpectedResults(com.cql.input.support.Test test) {
         List<Object> results = new ArrayList<>();
         if (test.getOutput() != null) {
-            for (org.hl7.fhirpath.tests.Output output : test.getOutput()) {
+            for (com.cql.input.support.Output output : test.getOutput()) {
                 switch (output.getType()) {
                     case BOOLEAN:
                         results.add(Boolean.valueOf(output.getValue()));
@@ -68,7 +78,7 @@ public class TestFhirPath {
         }
 
         return results;
-    }*/
+    }
 
     private ModelManager modelManager;
     private ModelManager getModelManager() {
@@ -161,7 +171,7 @@ public class TestFhirPath {
         return EqualEvaluator.equal(expectedResult, actualResult);
     }
 
-    /*private void runTest(org.hl7.fhirpath.tests.Test test) {
+    private void runTest(com.cql.input.support.Test test) {
         Resource resource = loadResource(test.getInputfile());
         String cql = String.format("library TestFHIRPath using FHIR version '3.0.0' include FHIRHelpers version '3.0.0' called FHIRHelpers parameter %s %s define Test: %s",
                 resource.fhirType(), resource.fhirType(), test.getExpression().getValue());
@@ -221,9 +231,9 @@ public class TestFhirPath {
                 }
             }
         }
-    }*/
+    }
 
-    /*@Test
+    @Test
     public void testFhirPath() {
         // Load Test cases from org/hl7/fhirpath/stu3/tests-fhir-r3.xml
         // foreach test group:
@@ -236,9 +246,9 @@ public class TestFhirPath {
         Tests tests = loadTests();
         int testCounter = 0;
         int passCounter = 0;
-        for (Group group : tests.getGroup()) {
+        for (com.cql.input.support.Group group : tests.getGroup()) {
             System.out.println(String.format("Running test group %s...", group.getName()));
-            for (org.hl7.fhirpath.tests.Test test : group.getTest()) {
+            for (com.cql.input.support.Test test : group.getTest()) {
                 testCounter += 1;
                 try {
                     System.out.println(String.format("Running test %s...", test.getName()));
@@ -253,10 +263,10 @@ public class TestFhirPath {
             System.out.println(String.format("Finished test group %s.", group.getName()));
         }
         System.out.println(String.format("Passed %s of %s tests.", passCounter, testCounter));
-    }*/
+    }
 
     private String getStringFromResourceStream(String resourceName) {
-        java.io.InputStream input = TestFhirPath.class.getResourceAsStream(resourceName);
+        java.io.InputStream input = CqlDemoTest.class.getResourceAsStream(resourceName);
         try (BufferedReader stringReader = new BufferedReader(new InputStreamReader(input))) {
             String line = null;
             StringBuilder source = new StringBuilder();
@@ -271,61 +281,5 @@ public class TestFhirPath {
 
         return null;
     }
-
-    // TODO: Resolve Error: Could not load model information for model FHIR, version 3.0.0 because version 1.0.2 is already loaded
-    //@Test
-    public void testFhirHelpersStu3() {
-        String cql = getStringFromResourceStream("stu3/TestFHIRHelpers.cql");
-        Library library = translate(cql);
-        Context context = new Context(library);
-        context.registerLibraryLoader(getLibraryLoader());
-
-        FhirDataProvider provider = new FhirDataProvider().withEndpoint("http://fhirtest.uhn.ca/baseDstu3");
-        context.registerDataProvider("http://hl7.org/fhir", provider);
-
-        Object result = context.resolveExpressionRef("TestPeriodToInterval").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToQuantity").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestRangeToInterval").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToCode").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToConcept").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToString").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestRequestStatusToString").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToDateTime").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToTime").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToInteger").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToDecimal").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToBoolean").getExpression().evaluate(context);
-    }
-
-    @Test
-    public void testFhirHelpersDstu2() {
-        String cql = getStringFromResourceStream("Dstu2/TestFHIRHelpersDstu2.cql");
-        Library library = translate(cql);
-        Context context = new Context(library);
-        context.registerLibraryLoader(getLibraryLoader());
-
-        FhirDataProviderDstu2 compositeProvider = new FhirDataProviderDstu2().withPackageName("ca.uhn.fhir.model.dstu2.composite");
-        context.registerDataProvider("http://hl7.org/fhir", compositeProvider);
-        FhirDataProviderDstu2 primitiveProvider = new FhirDataProviderDstu2().withPackageName("ca.uhn.fhir.model.primitive");
-        context.registerDataProvider("http://hl7.org/fhir", primitiveProvider);
-        FhirDataProviderDstu2 enumProvider = new FhirDataProviderDstu2().withPackageName("ca.uhn.fhir.model.dstu2.valueset");
-        context.registerDataProvider("http://hl7.org/fhir", enumProvider);
-        FhirDataProviderDstu2 resourceProvider = new FhirDataProviderDstu2().withPackageName("ca.uhn.fhir.model.dstu2.resource");
-        context.registerDataProvider("http://hl7.org/fhir", resourceProvider);
-
-        Object result = context.resolveExpressionRef("TestPeriodToInterval").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToQuantity").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestRangeToInterval").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToCode").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToConcept").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToString").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestRequestStatusToString").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToDateTime").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToTime").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToInteger").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToDecimal").getExpression().evaluate(context);
-        result = context.resolveExpressionRef("TestToBoolean").getExpression().evaluate(context);
-    }
-
     
 }
